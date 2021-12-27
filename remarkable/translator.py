@@ -24,7 +24,8 @@ def translate(text: str) -> str:
         translator = deepl.Translator(os.getenv("DEEPL_AUTH_KEY"))
         result = translator.translate_text(text, target_lang="PL")
         cache[text] = result.text
-        logging.info("Translation fetched from DeepL API.")
+        usage = translator.get_usage()
+        logging.info(f"Translation received from DeepL API. [Character usage: {usage.character}]")
         return result.text
 
 if __name__ == "__main__":
