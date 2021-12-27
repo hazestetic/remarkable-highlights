@@ -28,5 +28,13 @@ def translate(text: str) -> str:
         return result.text
 
 if __name__ == "__main__":
-    res = translate("This is a test text")
-    print(res)
+    # res = translate("This is a test text")
+    # print(res)
+    translator = deepl.Translator(os.getenv("DEEPL_AUTH_KEY"))
+    usage = translator.get_usage()
+    if usage.character.limit_exceeded:
+        print("Character limit exceeded.")
+    else:
+        print(f"Character usage: {usage.character}")
+
+
