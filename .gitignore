@@ -1,2 +1,4 @@
-highlights/**/*.json
+*.json
+*.pyc
 poetry.lock
+cache
