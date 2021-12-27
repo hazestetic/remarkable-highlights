@@ -1,13 +1,39 @@
 from remarkable.document import Document, sync_documents
+from remarkable.transform import extract_merge_texts
+from remarkable.translator import translate
+import click
+import time
+from termcolor import colored
+
+WAIT_SECONDS = 1
+
+@click.command()
+@click.option("--scan", is_flag=True)
+def run(scan: bool):
+
+    if scan:
+        newest_prev = ""
+        newest = ""
+        while True:
+            sync_documents()
+
+            doc = Document()
+            texts = extract_merge_texts(doc.highlights)
+            
+            newest_prev = newest
+            newest = texts[-1]
+            if newest_prev != newest:
+                print()
+                translation = translate(newest)
+                print()
+                print(f"ENG: {colored(newest, 'green')}")
+                print(f"PL:  {colored(translation, 'red')}")
+
+            time.sleep(WAIT_SECONDS)
 
 
-def main():
-    sync_documents()
-    doc = Document()
-    
-    for highlight in doc.highlights:
-        print(highlight)
+        # print(colored(prev.text, 'yellow'), colored(curr.text, 'green'), colored(dist, 'red'))
     
 
 if __name__ == "__main__":
-    main()
+    run()
