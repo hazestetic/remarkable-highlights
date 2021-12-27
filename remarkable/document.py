@@ -3,6 +3,7 @@ import json
 import re
 import logging
 from dataclasses import dataclass
+import subprocess
 from remarkable.const import *
 
 logging.basicConfig(
@@ -11,18 +12,23 @@ logging.basicConfig(
 )
 
 def host_up():
-    # Timeout = 1 second
-    if os.system(f"ping -t 1 -c 1 {REMARKABLE_IP}") == 0:
-        return True
-    else:
-        logging.warning("Host is down!")
-        return False
+    with open(os.devnull, 'w') as DEVNULL:
+        try:
+            subprocess.check_call(
+                ['ping', '-t', '1', '-c', '1', REMARKABLE_IP],
+                stdout=DEVNULL,  # suppress output
+                stderr=DEVNULL
+            )
+            return True
+        except subprocess.CalledProcessError:
+            logging.warning("Host is down!")
+            return False
 
 def sync_documents():
     if not host_up():
         return
 
-    cmd = f"rsync -avh --include='*.metadata' --include='*.json' --include='*/' --exclude='*' root@{REMARKABLE_IP}:{REMARKABLE_DATA_DIR}/* {DOCS_DIR}"
+    cmd = f"rsync -a --include='*.metadata' --include='*.json' --include='*/' --exclude='*' root@{REMARKABLE_IP}:{REMARKABLE_DATA_DIR}/* {DOCS_DIR}"
     if os.system(cmd) != 0:
         logging.warning("Could not synchronize documents.")
 
