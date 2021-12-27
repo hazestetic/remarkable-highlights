@@ -1,1 +1,0 @@
-scp -r "root@192.168.1.178:/home/root/.local/share/remarkable/xochitl/efad8af2-09c4-4091-bb0b-6259b055c882.highlights" "/Users/marcin/Code/remarkable/highlights"
