@@ -2,45 +2,14 @@ import os
 import json
 import re
 import logging
-from dataclasses import dataclass
-import subprocess
+
 from remarkable.const import *
+from remarkable.highlight import load_highlights_from_file
 
 logging.basicConfig(
     level=logging.INFO,
     format="[%(asctime)s] %(levelname)s : %(message)s"
 )
-
-def host_up():
-    with open(os.devnull, 'w') as DEVNULL:
-        try:
-            subprocess.check_call(
-                ['ping', '-t', '1', '-c', '1', REMARKABLE_IP],
-                stdout=DEVNULL,  # suppress output
-                stderr=DEVNULL
-            )
-            return True
-        except subprocess.CalledProcessError:
-            logging.warning("Host is down!")
-            return False
-
-def sync_documents():
-    if not host_up():
-        return
-
-    cmd = f"rsync -a --include='*.metadata' --include='*.json' --include='*/' --exclude='*' root@{REMARKABLE_IP}:{REMARKABLE_DATA_DIR}/* {DOCS_DIR}"
-    if os.system(cmd) != 0:
-        logging.warning("Could not synchronize documents.")
-
-
-@dataclass
-class Highlight:
-    text: str
-    color: int
-    start: int
-    length: int
-    src: str
-
 
 class Document:
 
@@ -57,33 +26,19 @@ class Document:
         self.highlights = []
 
         highlights_dir = DOCS_DIR.joinpath(f"{self.id}.highlights")
+        # By default highlight files are unordered.
+        # To load them in modification-date order, function below is used.
         if filenames := self.filenames_by_modification_date():
             filepaths = [highlights_dir.joinpath(name) for name in filenames]
         else:
             filepaths = [fp for fp in highlights_dir.iterdir()]
 
-        for filepath in filepaths:
-            with open(filepath) as f:
-                highlights_list: list[dict] = json.load(f)["highlights"][0]
-
-            for highlight in highlights_list:
-                self.highlights.append(Highlight(
-                    text=highlight.get("text"),
-                    color=highlight.get("color"),
-                    start=highlight.get("start"),
-                    length=highlight.get("length"),
-                    src=filepath.name.split('.')[0]
-                ))
+        for path in filepaths:
+            self.highlights += load_highlights_from_file(path)
+        
 
     def filenames_by_modification_date(self) -> list[str]:
-        if not host_up():
-            return
+        """Loads file names in modification-timestamp order."""
         output = os.popen(f"ssh remarkable ls -lrt {REMARKABLE_DATA_DIR}/{self.id}.highlights").read()
         uuid_pattern = re.compile(r"\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b")
         return [f"{match}.json" for match in uuid_pattern.findall(output)]
-
-    
-    def stats(self):
-        print(f"# {self.meta['visibleName']}")
-        print(f"Highlight count: {len(self.highlights)}")
-        

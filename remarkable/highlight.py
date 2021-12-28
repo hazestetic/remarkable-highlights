@@ -1,7 +1,42 @@
-from remarkable.document import Highlight
+import json
+from pathlib import Path
+from dataclasses import dataclass
 
 
-def extract_merge_texts(highlights: list[Highlight]) -> list[str]:
+class UnsupportedFileExtension(Exception):
+    ...
+
+
+@dataclass
+class Highlight:
+    text: str
+    color: int
+    start: int
+    length: int
+    src: str
+
+
+def load_highlights_from_file(path: Path) -> list[Highlight]:
+    """Loads all highlights from json file."""
+    if path.suffix != ".json":
+        raise UnsupportedFileExtension(f"Expected .json, found {path.suffix}")
+
+    with open(path) as f:
+        highlights: list[dict] = json.load(f)["highlights"][0]
+
+    return [
+        Highlight(
+            text=h.get("text"),
+            color=h.get("color"),
+            start=h.get("start"),
+            length=h.get("length"),
+            src=path.name.split(".")[0],
+        )
+        for h in highlights
+    ]
+
+
+def extract_texts_from_highlights(highlights: list[Highlight]) -> list[str]:
     """
         Gdy zaznaczysz 2 linijki oddzielnie, remarkable potraktuje je jako 2 zaznaczenia.
         Ta funkcja łączy takie przypadki w jeden tekst.
