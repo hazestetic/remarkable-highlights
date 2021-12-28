@@ -16,7 +16,7 @@ class Highlight:
     src: str
 
 
-def load_highlights_from_file(path: Path) -> list[Highlight]:
+def load_highlights_from_file(path: Path, allowed_colors: list[int]) -> list[Highlight]:
     """Loads all highlights from json file."""
     if path.suffix != ".json":
         raise UnsupportedFileExtension(f"Expected .json, found {path.suffix}")
@@ -32,7 +32,7 @@ def load_highlights_from_file(path: Path) -> list[Highlight]:
             length=h.get("length"),
             src=path.name.split(".")[0],
         )
-        for h in highlights
+        for h in highlights if h["color"] in allowed_colors
     ]
 
 

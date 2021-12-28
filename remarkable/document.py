@@ -13,18 +13,18 @@ logging.basicConfig(
 
 class Document:
 
-    def __init__(self, id="efad8af2-09c4-4091-bb0b-6259b055c882") -> None:
+    def __init__(self, id="efad8af2-09c4-4091-bb0b-6259b055c882", allowed_colors=[3]) -> None:
         self.id = id
+        self.allowed_colors = allowed_colors
         self.load_metadata()
-        self.load_highlights()
+        self.highlights = self.load_highlights()
 
     def load_metadata(self):
         with open(DOCS_DIR.joinpath(f"{self.id}.metadata")) as f:
             self.meta = json.loads(f.read())
 
     def load_highlights(self):
-        self.highlights = []
-
+        highlights = []
         highlights_dir = DOCS_DIR.joinpath(f"{self.id}.highlights")
         # By default highlight files are unordered.
         # To load them in modification-date order, function below is used.
@@ -34,8 +34,15 @@ class Document:
             filepaths = [fp for fp in highlights_dir.iterdir()]
 
         for path in filepaths:
-            self.highlights += load_highlights_from_file(path)
-        
+            highlights += load_highlights_from_file(path, self.allowed_colors)
+        return highlights
+
+    def update_highlights(self):
+        """Updates highlights and returns info if new highlights were found."""
+        latest_highlights = self.load_highlights()
+        new_highlights = len(latest_highlights) > len(self.highlights)
+        self.highlights = latest_highlights
+        return new_highlights
 
     def filenames_by_modification_date(self) -> list[str]:
         """Loads file names in modification-timestamp order."""

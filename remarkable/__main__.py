@@ -19,16 +19,18 @@ def run(scan: bool, update: bool):
         return
 
     monitor = Monitor(document_id="efad8af2-09c4-4091-bb0b-6259b055c882")
+    doc = Document(id="efad8af2-09c4-4091-bb0b-6259b055c882", allowed_colors=[3])
 
     if scan:
         while True:
             if monitor.modification_occured():
                 sync_documents()
-                doc = Document(id="efad8af2-09c4-4091-bb0b-6259b055c882")
-                texts = extract_texts_from_highlights(doc.highlights)
-                trans = translate(texts[-1])
-                print(f"ENG: {colored(texts[-1], 'green')}")
-                print(f"PL:  {colored(trans, 'red')}")
+                new_highlights = doc.update_highlights()
+                if new_highlights:
+                    texts = extract_texts_from_highlights(doc.highlights)
+                    trans = translate(texts[-1])
+                    print(f"ENG: {colored(texts[-1], 'green')}")
+                    print(f"PL:  {colored(trans, 'red')}")
             time.sleep(WAIT_SECONDS)
 
     if update:
