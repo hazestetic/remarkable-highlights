@@ -1,19 +1,23 @@
 from remarkable.document import Document, sync_documents
 from remarkable.transform import extract_merge_texts
 from remarkable.translator import translate
+
 import click
 import time
 from termcolor import colored
 
 WAIT_SECONDS = 1
 
+
 @click.command()
 @click.option("--scan", is_flag=True)
-def run(scan: bool):
+@click.option("--update", is_flag=True, help="Update translations dictionary.")
+def run(scan: bool, update: bool):
 
     if scan:
         newest_prev = ""
         newest = ""
+
         while True:
             sync_documents()
 
@@ -30,9 +34,6 @@ def run(scan: bool):
                 print(f"PL:  {colored(translation, 'red')}")
 
             time.sleep(WAIT_SECONDS)
-
-
-        # print(colored(prev.text, 'yellow'), colored(curr.text, 'green'), colored(dist, 'red'))
     
 
 if __name__ == "__main__":
