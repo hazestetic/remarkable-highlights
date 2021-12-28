@@ -1,8 +1,5 @@
-*.json
 *.pyc
-*.metadata
-documents
 poetry.lock
-cache
 .DS_Store
 __pycache__
+data
