@@ -9,11 +9,10 @@ logging.basicConfig(
     format="[%(asctime)s] %(levelname)s : %(message)s"
 )
 
-def translate(text: str) -> str:
+def translate_pl(text: str) -> str:
     """
-    Tłumaczy podany tekst na język polski, 
-    korzystając z cache'a gdy to mozliwe.
-    W przeciwnym wypadku tłumeczenie jest pozyskiwane z DeepL API.
+    Translate provided text to polish language.
+    Use DeepL API / diskCache.
     """
     CACHE_DIR = Path(__file__).parent.joinpath("data/cache")
     cache = Cache(CACHE_DIR)

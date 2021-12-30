@@ -46,6 +46,6 @@ class Document:
 
     def filenames_by_modification_date(self) -> list[str]:
         """Loads file names in modification-timestamp order."""
-        output = os.popen(f"ssh remarkable ls -lrt {REMARKABLE_DATA_DIR}/{self.id}.highlights").read()
+        output = os.popen(f"ssh root@192.168.1.178 ls -lrt {REMARKABLE_DATA_DIR}/{self.id}.highlights").read()
         uuid_pattern = re.compile(r"\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b")
         return [f"{match}.json" for match in uuid_pattern.findall(output)]

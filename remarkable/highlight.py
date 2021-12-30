@@ -17,7 +17,7 @@ class Highlight:
 
 
 def load_highlights_from_file(path: Path, allowed_colors: list[int]) -> list[Highlight]:
-    """Loads all highlights from json file."""
+    """Load all highlights from json file."""
     if path.suffix != ".json":
         raise UnsupportedFileExtension(f"Expected .json, found {path.suffix}")
 
@@ -38,8 +38,10 @@ def load_highlights_from_file(path: Path, allowed_colors: list[int]) -> list[Hig
 
 def extract_texts_from_highlights(highlights: list[Highlight]) -> list[str]:
     """
-        Gdy zaznaczysz 2 linijki oddzielnie, remarkable potraktuje je jako 2 zaznaczenia.
-        Ta funkcja łączy takie przypadki w jeden tekst.
+        It is possible that you first - highlighted some text,  
+        and then decided to enlarge it – the lines are now split.
+        
+        This function joins broken lines and additionally drops duplicates.
     """
     texts = list()
     prolonged_text = ""
