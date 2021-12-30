@@ -1,6 +1,7 @@
 import os
 import subprocess
 import logging
+import time
 
 from remarkable.const import *
 
@@ -32,20 +33,38 @@ def sync_documents():
     if os.system(cmd) != 0:
         logging.warning("Could not synchronize documents.")
 
+def chronological_ls(dir: str) -> str:
+    """ ls + modification date
 
-class Monitor:
+        Used for ordering the files (highlights) in modification (chronological) order,
+        and detecting whether any new phrases were highlighted.
+    """
+    return os.popen(f"ssh root@192.168.1.178 ls -lrt {dir}").read()
+
+
+def detect_highlight(document_id: str, delay: float=3) -> str:
+    # Detect any new highlights.
+    dir = f"{REMARKABLE_DATA_DIR}/{document_id}.highlights"
+    last_order = chronological_ls(dir)
+    while True:
+        curr_order = chronological_ls(dir)
+        if last_order != curr_order:
+            yield curr_order
+        last_order = curr_order
+        time.sleep(delay)
+
+
+
+
+
+class HighlightMonitor:
     def __init__(self, document_id: str):
-        self.document_id = document_id
-        self.last_state = self.last_highlights_modification_state()
+        self.dir = f"{REMARKABLE_DATA_DIR}/{self.document_id}.highlights"
+        self.last_order = chronological_ls(self.dir)
 
-    def modification_occured(self) -> bool:
-        curr_state = self.last_highlights_modification_state()
-        if curr_state == self.last_state:
-            return False
-        else:
-            self.last_state = curr_state
-            return True
-
-    def last_highlights_modification_state(self) -> str:
-        """Datetime-string of latest update in xochitl (data) directory."""
-        return os.popen(f"ssh remarkable ls -lrt {REMARKABLE_DATA_DIR}/{self.document_id}.highlights").read()
+    def check(self) -> bool:
+        """Checks for change in highlights."""
+        curr_order = chronological_ls()
+        change = self.last_order != curr_order
+        self.last_order = curr_order
+        return change
